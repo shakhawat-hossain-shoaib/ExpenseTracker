@@ -21,7 +21,7 @@ A Flutter application for tracking personal finances, managing transactions, and
 
 ## Screenshots
 
-| Screenshot 1 | Screenshot 2 | Screenshot 3 |
+| Home Page | Analytics | Reminder |
 | :---: | :---: | :---: |
 | ![Screenshot 1](screenshot/Screenshot_1.png) | ![Screenshot 2](screenshot/Screenshot_2.png) | ![Screenshot 3](screenshot/Screenshot_3.png) |
 
