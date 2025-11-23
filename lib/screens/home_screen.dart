@@ -35,7 +35,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   TransactionFilter _selectedFilter = TransactionFilter.all;
   DateTime _currentDateContext = DateTime.now();
   String _userName = "User"; // Default name
-  String _userName = "User"; // Default name
 
 
   int _touchedIndexDonut = -1;
@@ -261,6 +260,74 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  Future<void> _showBuyMeCoffeeDialog() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.local_cafe_rounded, color: AppColors.accentGreen, size: 28),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text('Buy Me a Coffee'),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Shakhawat Hossain Shoaib',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'I build things, break things, fix things, and somehow make it all work again. Most of my days disappear into code, robots, and random experiments that turn into projects. If you want to fuel the chaos—or just send a coffee my way—you\'ll find me here:',
+                  style: TextStyle(height: 1.6),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.chipBackground,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.accentGreen.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'bKash / Nagad / Upay / Pathao Pay',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '01816487531',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: AppColors.accentGreen,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close', style: TextStyle(color: AppColors.accentGreen)),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -286,6 +353,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   floating: true,
                   automaticallyImplyLeading: false,
                   expandedHeight: 90.0,
+                  actions: [
+                    Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: IconButton(
+                        icon: const Icon(Icons.local_cafe_rounded, color: AppColors.accentGreen),
+                        onPressed: _showBuyMeCoffeeDialog,
+                        tooltip: 'Buy me a coffee',
+                      ),
+                    ),
+                  ],
                   flexibleSpace: FlexibleSpaceBar(
                     titlePadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                     centerTitle: false,
