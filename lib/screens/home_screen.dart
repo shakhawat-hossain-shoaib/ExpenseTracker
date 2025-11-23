@@ -1,5 +1,6 @@
 // lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:finance_tracker/db/database_helper.dart';
@@ -102,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       child: DropdownButton<String>(
                         value: tempCurrency,
                         isExpanded: true,
-                        items: ['USD', 'BDT', 'EUR', 'GBP', 'INR'].map((String value) {
+                        items: ['USD', 'BDT', 'EUR', 'GBP', 'INR', 'AUD'].map((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
                             child: Text(value),
@@ -304,11 +305,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                       ),
                       const SizedBox(height: 6),
-                      Text(
-                        '01816487531',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppColors.accentGreen,
-                          fontWeight: FontWeight.bold,
+                      GestureDetector(
+                        onTap: () {
+                          Clipboard.setData(const ClipboardData(text: '01816487531')).then((_) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Number copied to clipboard!'),
+                                duration: Duration(seconds: 2),
+                                backgroundColor: AppColors.accentGreen,
+                              ),
+                            );
+                          });
+                        },
+                        child: Text(
+                          '01816487531',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: AppColors.accentGreen,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                          ),
                         ),
                       ),
                     ],
