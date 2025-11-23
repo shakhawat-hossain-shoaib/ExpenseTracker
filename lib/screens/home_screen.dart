@@ -7,6 +7,9 @@ import 'package:finance_tracker/models/transaction_model.dart' as app_models;
 import 'package:finance_tracker/utils/colors.dart';
 import 'package:finance_tracker/screens/add_transaction_screen.dart';
 import 'package:finance_tracker/widgets/transaction_item.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:finance_tracker/utils/currency_manager.dart';
+
 
 enum TransactionFilter { all, daily, weekly, monthly }
 
@@ -31,6 +34,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _isLoading = true;
   TransactionFilter _selectedFilter = TransactionFilter.all;
   DateTime _currentDateContext = DateTime.now();
+  String _userName = "User"; // Default name
+  String _userName = "User"; // Default name
+
 
   int _touchedIndexDonut = -1;
 
@@ -38,6 +44,105 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _loadData();
+    _checkUserName();
+  }
+
+  Future<void> _checkUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? name = prefs.getString('user_name');
+    if (name == null || name.isEmpty) {
+      // Name not set, show dialog
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showNameInputDialog();
+      });
+    } else {
+      setState(() {
+        _userName = name;
+      });
+    }
+  }
+
+  Future<void> _showNameInputDialog() async {
+    TextEditingController nameController = TextEditingController();
+    String tempCurrency = "USD";
+    
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must enter a name
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: const Text('Welcome!'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Please enter your name and currency.'),
+                  const SizedBox(height: 15),
+                  TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(
+                      labelText: "Your Name",
+                      hintText: "e.g. Shoaib",
+                      border: OutlineInputBorder(),
+                    ),
+                    textCapitalization: TextCapitalization.words,
+                  ),
+                  const SizedBox(height: 20),
+                  const Text("Preferred Currency", style: TextStyle(fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: tempCurrency,
+                        isExpanded: true,
+                        items: ['USD', 'BDT', 'EUR', 'GBP', 'INR'].map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (newValue) {
+                          setStateDialog(() {
+                            tempCurrency = newValue!;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: <Widget>[
+                ElevatedButton(
+                  child: const Text('Save'),
+                  onPressed: () async {
+                    if (nameController.text.trim().isNotEmpty) {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setString('user_name', nameController.text.trim());
+                      await CurrencyManager().setCurrency(tempCurrency);
+                      
+                      if (mounted) {
+                        setState(() {
+                          _userName = nameController.text.trim();
+                        });
+                      }
+                      Navigator.of(context).pop();
+                    }
+                  },
+                ),
+              ],
+            );
+          }
+        );
+      },
+    );
   }
 
   // Public method for potential refresh from parent (MainAppScreen)
@@ -159,69 +264,76 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final NumberFormat currencyFormatter = NumberFormat.currency(locale: 'en_US', symbol: '\$');
 
-    return Scaffold(
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.accentGreen))
-          : RefreshIndicator(
-        onRefresh: _loadData,
-        color: AppColors.accentGreen,
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              backgroundColor: theme.scaffoldBackgroundColor,
-              elevation: 0,
-              pinned: false,
-              floating: true,
-              automaticallyImplyLeading: false,
-              expandedHeight: 90.0,
-              flexibleSpace: FlexibleSpaceBar(
-                titlePadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                centerTitle: false,
-                title: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Hello,',
-                      style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.secondaryText, fontSize: 16),
+    return ValueListenableBuilder<String>(
+      valueListenable: CurrencyManager().currencyNotifier,
+      builder: (context, currencyCode, child) {
+        final symbol = CurrencyManager.getSymbolForCurrency(currencyCode);
+        final NumberFormat currencyFormatter = NumberFormat.currency(locale: 'en_US', symbol: symbol);
+
+        return Scaffold(
+          body: _isLoading
+              ? const Center(child: CircularProgressIndicator(color: AppColors.accentGreen))
+              : RefreshIndicator(
+            onRefresh: _loadData,
+            color: AppColors.accentGreen,
+            child: CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  backgroundColor: theme.scaffoldBackgroundColor,
+                  elevation: 0,
+                  pinned: false,
+                  floating: true,
+                  automaticallyImplyLeading: false,
+                  expandedHeight: 90.0,
+                  flexibleSpace: FlexibleSpaceBar(
+                    titlePadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    centerTitle: false,
+                    title: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Hello,',
+                          style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.secondaryText, fontSize: 16),
+                        ),
+                        Text(
+                          _userName,
+                          style: theme.textTheme.titleLarge?.copyWith(fontSize: 26, height: 1.2),
+                        ),
+                      ],
                     ),
-                    Text(
-                      'Shoaib',
-                      style: theme.textTheme.titleLarge?.copyWith(fontSize: 26, height: 1.2),
+                  ),
+                ),
+                SliverToBoxAdapter(child: _buildCurrentBalanceCard(theme, currencyFormatter)),
+                SliverToBoxAdapter(child: _buildFilterChips(theme)),
+                SliverToBoxAdapter(child: _buildIncomeSpentSummaryCard(theme, currencyFormatter)),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Recent transactions', style: theme.textTheme.titleMedium),
+                        if (_transactions.isNotEmpty && (_transactions.length > 5 || _selectedFilter == TransactionFilter.all))
+                          TextButton(
+                            onPressed: () {
+                              widget.onNavigateToTransferTab(); // Navigate to Transfer tab
+                            },
+                            child: Text('See All >', style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.accentGreen)),
+                          ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
+                _buildRecentTransactionsList(symbol),
+                const SliverToBoxAdapter(child: SizedBox(height: 80)),
+              ],
             ),
-            SliverToBoxAdapter(child: _buildCurrentBalanceCard(theme, currencyFormatter)),
-            SliverToBoxAdapter(child: _buildFilterChips(theme)),
-            SliverToBoxAdapter(child: _buildIncomeSpentSummaryCard(theme, currencyFormatter)),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Recent transactions', style: theme.textTheme.titleMedium),
-                    if (_transactions.isNotEmpty && (_transactions.length > 5 || _selectedFilter == TransactionFilter.all))
-                      TextButton(
-                        onPressed: () {
-                          widget.onNavigateToTransferTab(); // Navigate to Transfer tab
-                        },
-                        child: Text('See All >', style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.accentGreen)),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            _buildRecentTransactionsList(),
-            const SliverToBoxAdapter(child: SizedBox(height: 80)),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -406,7 +518,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildRecentTransactionsList() {
+  Widget _buildRecentTransactionsList(String currencySymbol) {
     if (_transactions.isEmpty) {
       return SliverToBoxAdapter(
         child: Container(
@@ -428,6 +540,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           final transaction = _transactions[index];
           return TransactionItem(
             transaction: transaction,
+            currencySymbol: currencySymbol,
             onTap: () {
               widget.onNavigateToTransferTab(); // Navigate to Transfer tab
               // If you want to pass the specific transaction to TransferScreen,

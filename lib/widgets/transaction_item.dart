@@ -9,18 +9,20 @@ class TransactionItem extends StatelessWidget {
   final app_models.Transaction transaction;
   final VoidCallback onDelete;
   final VoidCallback? onTap;
+  final String currencySymbol;
 
   const TransactionItem({
     super.key,
     required this.transaction,
     required this.onDelete,
     this.onTap,
+    this.currencySymbol = '\$', // Default to $ if not provided
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final NumberFormat currencyFormatter = NumberFormat.currency(locale: 'en_US', symbol: '\$');
+    final NumberFormat currencyFormatter = NumberFormat.currency(locale: 'en_US', symbol: currencySymbol);
     final DateFormat dateFormatter = DateFormat('MMM dd, yyyy');
     final bool isIncome = transaction.type == app_models.TransactionType.income;
     final Color amountColor = isIncome ? AppColors.incomeColor : AppColors.primaryText;

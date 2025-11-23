@@ -7,6 +7,7 @@ import 'package:finance_tracker/models/transaction_model.dart' as app_models;
 import 'package:finance_tracker/utils/colors.dart';
 import 'package:finance_tracker/widgets/transaction_item.dart';
 import 'package:finance_tracker/screens/add_transaction_screen.dart';
+import 'package:finance_tracker/utils/currency_manager.dart';
 
 // Enum for filtering transactions in the history section
 enum HistoryFilter { daily, weekly, monthly }
@@ -174,75 +175,82 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final NumberFormat currencyFormatter = NumberFormat.currency(locale: 'en_US', symbol: '\$');
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Analytics & History', style: theme.appBarTheme.titleTextStyle),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            onPressed: (){
-              _loadDailyPieChartData();
-              _loadHistoryTransactions();
+    return ValueListenableBuilder<String>(
+      valueListenable: CurrencyManager().currencyNotifier,
+      builder: (context, currencyCode, child) {
+        final symbol = CurrencyManager.getSymbolForCurrency(currencyCode);
+        final NumberFormat currencyFormatter = NumberFormat.currency(locale: 'en_US', symbol: symbol);
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('Analytics & History', style: theme.appBarTheme.titleTextStyle),
+            centerTitle: true,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh_rounded),
+                onPressed: (){
+                  _loadDailyPieChartData();
+                  _loadHistoryTransactions();
+                },
+                tooltip: 'Refresh All Data',
+              )
+            ],
+          ),
+          body: RefreshIndicator(
+            onRefresh: () async {
+              await _loadDailyPieChartData();
+              await _loadHistoryTransactions();
             },
-            tooltip: 'Refresh All Data',
-          )
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          await _loadDailyPieChartData();
-          await _loadHistoryTransactions();
-        },
-        color: AppColors.accentGreen,
-        child: ListView(
-          padding: const EdgeInsets.all(16.0),
-          children: [
-            // --- Daily Analytics Pie Chart Section ---
-            Text(
-              'Today\'s Financial Flow (${DateFormat('MMM dd').format(DateTime.now())})',
-              style: theme.textTheme.titleLarge?.copyWith(fontSize: 20, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 16),
-            _isLoadingDailyPie
-                ? const Center(heightFactor: 3, child: CircularProgressIndicator(color: AppColors.accentGreen))
-                : _buildDailyPieChartContent(theme, currencyFormatter),
-
-            const SizedBox(height: 24),
-            const Divider(thickness: 1.5, height: 32),
-            const SizedBox(height: 16),
-
-            // --- Transaction History Section ---
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            color: AppColors.accentGreen,
+            child: ListView(
+              padding: const EdgeInsets.all(16.0),
               children: [
+                // --- Daily Analytics Pie Chart Section ---
                 Text(
-                  'Transaction History',
+                  'Today\'s Financial Flow (${DateFormat('MMM dd').format(DateTime.now())})',
                   style: theme.textTheme.titleLarge?.copyWith(fontSize: 20, fontWeight: FontWeight.w600),
                 ),
-                TextButton.icon(
-                  icon: const Icon(Icons.calendar_month_outlined, size: 20, color: AppColors.accentGreen),
-                  label: Text(
-                    _selectedHistoryFilter == HistoryFilter.daily ? DateFormat('MMM dd, yy').format(_contextDateForHistory) :
-                    _selectedHistoryFilter == HistoryFilter.weekly ? "Week of ${DateFormat('MMM dd').format(_contextDateForHistory.subtract(Duration(days: _contextDateForHistory.weekday - 1)))}" :
-                    DateFormat('MMMM yyyy').format(_contextDateForHistory),
-                    style: const TextStyle(color: AppColors.accentGreen),
-                  ),
-                  onPressed: () => _pickDateForHistoryContext(context),
-                )
+                const SizedBox(height: 16),
+                _isLoadingDailyPie
+                    ? const Center(heightFactor: 3, child: CircularProgressIndicator(color: AppColors.accentGreen))
+                    : _buildDailyPieChartContent(theme, currencyFormatter),
+
+                const SizedBox(height: 24),
+                const Divider(thickness: 1.5, height: 32),
+                const SizedBox(height: 16),
+
+                // --- Transaction History Section ---
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Transaction History',
+                      style: theme.textTheme.titleLarge?.copyWith(fontSize: 20, fontWeight: FontWeight.w600),
+                    ),
+                    TextButton.icon(
+                      icon: const Icon(Icons.calendar_month_outlined, size: 20, color: AppColors.accentGreen),
+                      label: Text(
+                        _selectedHistoryFilter == HistoryFilter.daily ? DateFormat('MMM dd, yy').format(_contextDateForHistory) :
+                        _selectedHistoryFilter == HistoryFilter.weekly ? "Week of ${DateFormat('MMM dd').format(_contextDateForHistory.subtract(Duration(days: _contextDateForHistory.weekday - 1)))}" :
+                        DateFormat('MMMM yyyy').format(_contextDateForHistory),
+                        style: const TextStyle(color: AppColors.accentGreen),
+                      ),
+                      onPressed: () => _pickDateForHistoryContext(context),
+                    )
+                  ],
+                ),
+                const SizedBox(height: 8),
+                _buildHistoryFilterChips(theme),
+                const SizedBox(height: 16),
+                _isLoadingHistory
+                    ? const Center(heightFactor: 3, child: CircularProgressIndicator(color: AppColors.accentGreen))
+                    : _buildHistoryListContent(theme, symbol),
               ],
             ),
-            const SizedBox(height: 8),
-            _buildHistoryFilterChips(theme),
-            const SizedBox(height: 16),
-            _isLoadingHistory
-                ? const Center(heightFactor: 3, child: CircularProgressIndicator(color: AppColors.accentGreen))
-                : _buildHistoryListContent(theme),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -361,7 +369,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  Widget _buildHistoryListContent(ThemeData theme) {
+  Widget _buildHistoryListContent(ThemeData theme, String currencySymbol) {
     if (_historyTransactions.isEmpty && !_isLoadingHistory) {
       return Center( /* ... No data message as before ... */
         child: Padding(
@@ -387,6 +395,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         final transaction = _historyTransactions[index];
         return TransactionItem(
           transaction: transaction,
+          currencySymbol: currencySymbol,
           onTap: () => _navigateToEditTransaction(transaction),
           onDelete: () async {
             await _showDeleteConfirmationDialog(context, transaction.id!, () async {
