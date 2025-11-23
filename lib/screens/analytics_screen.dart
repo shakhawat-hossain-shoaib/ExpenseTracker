@@ -184,7 +184,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: Text('Analytics & History', style: theme.appBarTheme.titleTextStyle),
+            title: Text('Analytics & Insights', style: theme.appBarTheme.titleTextStyle),
             centerTitle: true,
             actions: [
               IconButton(
@@ -204,41 +204,86 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             },
             color: AppColors.accentGreen,
             child: ListView(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
               children: [
-                // --- Daily Analytics Pie Chart Section ---
-                Text(
-                  'Today\'s Financial Flow (${DateFormat('MMM dd').format(DateTime.now())})',
-                  style: theme.textTheme.titleLarge?.copyWith(fontSize: 20, fontWeight: FontWeight.w600),
+                // --- Daily Analytics Section with Enhanced Design ---
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.trending_up_rounded, color: AppColors.accentGreen, size: 24),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Today's Overview",
+                            style: theme.textTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.bold),
+                          ),
+                          const Spacer(),
+                          Text(
+                            DateFormat('MMM dd, yyyy').format(DateTime.now()),
+                            style: theme.textTheme.bodySmall?.copyWith(color: AppColors.secondaryText, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 16),
                 _isLoadingDailyPie
                     ? const Center(heightFactor: 3, child: CircularProgressIndicator(color: AppColors.accentGreen))
                     : _buildDailyPieChartContent(theme, currencyFormatter),
 
-                const SizedBox(height: 24),
-                const Divider(thickness: 1.5, height: 32),
-                const SizedBox(height: 16),
+                const SizedBox(height: 32),
 
                 // --- Transaction History Section ---
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Transaction History',
-                      style: theme.textTheme.titleLarge?.copyWith(fontSize: 20, fontWeight: FontWeight.w600),
-                    ),
-                    TextButton.icon(
-                      icon: const Icon(Icons.calendar_month_outlined, size: 20, color: AppColors.accentGreen),
-                      label: Text(
-                        _selectedHistoryFilter == HistoryFilter.daily ? DateFormat('MMM dd, yy').format(_contextDateForHistory) :
-                        _selectedHistoryFilter == HistoryFilter.weekly ? "Week of ${DateFormat('MMM dd').format(_contextDateForHistory.subtract(Duration(days: _contextDateForHistory.weekday - 1)))}" :
-                        DateFormat('MMMM yyyy').format(_contextDateForHistory),
-                        style: const TextStyle(color: AppColors.accentGreen),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.history_rounded, color: AppColors.accentGreen, size: 24),
+                          const SizedBox(width: 8),
+                          Text(
+                            'History',
+                            style: theme.textTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
-                      onPressed: () => _pickDateForHistoryContext(context),
-                    )
-                  ],
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.accentGreen.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => _pickDateForHistoryContext(context),
+                            borderRadius: BorderRadius.circular(20),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.accentGreen),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    _selectedHistoryFilter == HistoryFilter.daily 
+                                        ? DateFormat('MMM dd').format(_contextDateForHistory)
+                                        : _selectedHistoryFilter == HistoryFilter.weekly 
+                                            ? "Week"
+                                            : DateFormat('MMM yyyy').format(_contextDateForHistory),
+                                    style: const TextStyle(color: AppColors.accentGreen, fontWeight: FontWeight.w600, fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 8),
                 _buildHistoryFilterChips(theme),
@@ -246,6 +291,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 _isLoadingHistory
                     ? const Center(heightFactor: 3, child: CircularProgressIndicator(color: AppColors.accentGreen))
                     : _buildHistoryListContent(theme, symbol),
+                const SizedBox(height: 30),
               ],
             ),
           ),
@@ -257,79 +303,161 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Widget _buildDailyPieChartContent(ThemeData theme, NumberFormat currencyFormatter) {
     final double totalToday = _todayIncome + _todayExpense;
     if (totalToday == 0 && !_isLoadingDailyPie) {
-      return Center( /* ... No data message as before ... */
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 30.0),
+      return Container(
+        height: 240,
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Center(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.pie_chart_outline_rounded, size: 50, color: AppColors.secondaryText.withOpacity(0.5)),
-              const SizedBox(height: 10),
-              Text('No income or expenses for today.', style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.secondaryText)),
+              Icon(Icons.pie_chart_outline_rounded, size: 56, color: AppColors.accentGreen.withOpacity(0.3)),
+              const SizedBox(height: 12),
+              Text('No transactions today', 
+                style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.secondaryText, fontWeight: FontWeight.w500),
+              ),
             ],
           ),
         ),
       );
     }
-    return Column(
-      children: [
-        SizedBox(
-          height: 220,
-          child: PieChart(
-            PieChartData(
-              pieTouchData: PieTouchData(
-                touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                  if (!mounted) return;
-                  setState(() {
-                    if (!event.isInterestedForInteractions || pieTouchResponse == null || pieTouchResponse.touchedSection == null) {
-                      _touchedIndexDailyPie = -1; return;
-                    }
-                    _touchedIndexDailyPie = pieTouchResponse.touchedSection!.touchedSectionIndex;
-                  });
-                },
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      color: AppColors.cardBackground,
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            SizedBox(
+              height: 220,
+              child: PieChart(
+                PieChartData(
+                  pieTouchData: PieTouchData(
+                    touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                      if (!mounted) return;
+                      setState(() {
+                        if (!event.isInterestedForInteractions || pieTouchResponse == null || pieTouchResponse.touchedSection == null) {
+                          _touchedIndexDailyPie = -1; return;
+                        }
+                        _touchedIndexDailyPie = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                      });
+                    },
+                  ),
+                  borderData: FlBorderData(show: false),
+                  sectionsSpace: 3,
+                  centerSpaceRadius: 60,
+                  sections: [
+                    if (_todayIncome > 0)
+                      PieChartSectionData(
+                        color: AppColors.incomeColor, 
+                        value: _todayIncome,
+                        title: '${(_todayIncome / totalToday * 100).toStringAsFixed(0)}%',
+                        radius: _touchedIndexDailyPie == 0 ? 62 : 52,
+                        titleStyle: TextStyle(
+                          fontSize: _touchedIndexDailyPie == 0 ? 16 : 13, 
+                          fontWeight: FontWeight.bold, 
+                          color: Colors.white, 
+                          shadows: [
+                            BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 2, offset: const Offset(0, 1))
+                          ]
+                        ),
+                      ),
+                    if (_todayExpense > 0)
+                      PieChartSectionData(
+                        color: AppColors.expenseColor, 
+                        value: _todayExpense,
+                        title: '${(_todayExpense / totalToday * 100).toStringAsFixed(0)}%',
+                        radius: (_todayIncome > 0 && _touchedIndexDailyPie == 1) || (_todayIncome == 0 && _touchedIndexDailyPie == 0) ? 62 : 52,
+                        titleStyle: TextStyle(
+                          fontSize: (_todayIncome > 0 && _touchedIndexDailyPie == 1) || (_todayIncome == 0 && _touchedIndexDailyPie == 0) ? 16 : 13, 
+                          fontWeight: FontWeight.bold, 
+                          color: Colors.white, 
+                          shadows: [
+                            BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 2, offset: const Offset(0, 1))
+                          ]
+                        ),
+                      ),
+                  ],
+                ),
+                swapAnimationDuration: const Duration(milliseconds: 250),
               ),
-              borderData: FlBorderData(show: false),
-              sectionsSpace: 3,
-              centerSpaceRadius: 60,
-              sections: [
-                if (_todayIncome > 0)
-                  PieChartSectionData(
-                    color: AppColors.incomeColor, value: _todayIncome,
-                    title: '${(_todayIncome / totalToday * 100).toStringAsFixed(0)}%',
-                    radius: _touchedIndexDailyPie == 0 ? 60 : 50,
-                    titleStyle: TextStyle(fontSize: _touchedIndexDailyPie == 0 ? 16 : 12, fontWeight: FontWeight.bold, color: Colors.white, shadows: const [Shadow(color: Colors.black38, blurRadius: 2)]),
-                  ),
-                if (_todayExpense > 0)
-                  PieChartSectionData(
-                    color: AppColors.expenseColor, value: _todayExpense,
-                    title: '${(_todayExpense / totalToday * 100).toStringAsFixed(0)}%',
-                    radius: (_todayIncome > 0 && _touchedIndexDailyPie == 1) || (_todayIncome == 0 && _touchedIndexDailyPie == 0) ? 60 : 50,
-                    titleStyle: TextStyle(fontSize: (_todayIncome > 0 && _touchedIndexDailyPie == 1) || (_todayIncome == 0 && _touchedIndexDailyPie == 0) ? 16 : 12, fontWeight: FontWeight.bold, color: Colors.white, shadows: const [Shadow(color: Colors.black38, blurRadius: 2)]),
-                  ),
-              ],
             ),
-            swapAnimationDuration: const Duration(milliseconds: 250),
-          ),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                children: [
+                  _buildStatsRow(
+                    icon: Icons.arrow_circle_up_rounded,
+                    iconColor: AppColors.incomeColor,
+                    label: 'Income',
+                    amount: currencyFormatter.format(_todayIncome),
+                    amountColor: AppColors.incomeColor,
+                    theme: theme,
+                  ),
+                  const SizedBox(height: 12),
+                  Divider(color: AppColors.lightGrey.withOpacity(0.5), height: 1),
+                  const SizedBox(height: 12),
+                  _buildStatsRow(
+                    icon: Icons.arrow_circle_down_rounded,
+                    iconColor: AppColors.expenseColor,
+                    label: 'Expense',
+                    amount: currencyFormatter.format(_todayExpense),
+                    amountColor: AppColors.expenseColor,
+                    theme: theme,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 20),
-        _buildLegendItem(AppColors.incomeColor, 'Today\'s Income', currencyFormatter.format(_todayIncome), theme),
-        const SizedBox(height: 8),
-        _buildLegendItem(AppColors.expenseColor, 'Today\'s Expense', currencyFormatter.format(_todayExpense), theme),
-      ],
+      ),
     );
   }
 
-  Widget _buildLegendItem(Color color, String title, String amount, ThemeData theme) {
-    return Row( /* ... As before ... */
-      mainAxisAlignment: MainAxisAlignment.start,
+  Widget _buildStatsRow({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required String amount,
+    required Color amountColor,
+    required ThemeData theme,
+  }) {
+    return Row(
       children: [
         Container(
-          width: 14, height: 14,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: iconColor, size: 20),
         ),
-        const SizedBox(width: 10),
-        Text('$title:', style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.normal, color: AppColors.secondaryText)),
-        const Spacer(),
-        Text(amount, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, color: AppColors.primaryText)),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.secondaryText, fontWeight: FontWeight.w500),
+          ),
+        ),
+        Text(
+          amount,
+          style: theme.textTheme.titleMedium?.copyWith(color: amountColor, fontWeight: FontWeight.bold),
+        ),
       ],
     );
   }
@@ -371,15 +499,27 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Widget _buildHistoryListContent(ThemeData theme, String currencySymbol) {
     if (_historyTransactions.isEmpty && !_isLoadingHistory) {
-      return Center( /* ... No data message as before ... */
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 30.0),
+      return Container(
+        height: 200,
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Center(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.hourglass_empty_rounded, size: 50, color: AppColors.secondaryText.withOpacity(0.5)),
-              const SizedBox(height: 10),
-              Text('No transactions for the selected period.',
-                style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.secondaryText),
+              Icon(Icons.inbox_rounded, size: 56, color: AppColors.accentGreen.withOpacity(0.3)),
+              const SizedBox(height: 12),
+              Text('No transactions yet',
+                style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.secondaryText, fontWeight: FontWeight.w500),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -387,10 +527,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         ),
       );
     }
-    return ListView.builder(
+    return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: _historyTransactions.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final transaction = _historyTransactions[index];
         return TransactionItem(
@@ -398,16 +539,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           currencySymbol: currencySymbol,
           onTap: () => _navigateToEditTransaction(transaction),
           onDelete: () async {
-            await _showDeleteConfirmationDialog(context, transaction.id!, () async {
-              if (mounted) {
-                await _dbHelper.delete(transaction.id!);
-                _loadHistoryTransactions();
-                _loadDailyPieChartData(); // If deleted transaction was from today
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Transaction deleted!'), backgroundColor: AppColors.expenseColor),
-                );
-              }
-            });
+            final confirm = await _showDeleteConfirmationDialog(context, transaction.id!, () {});
+            if (confirm == true && mounted) {
+              await _dbHelper.delete(transaction.id!);
+              _loadHistoryTransactions();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Transaction deleted!'),
+                  backgroundColor: AppColors.expenseColor,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
           },
         );
       },

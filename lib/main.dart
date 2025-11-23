@@ -8,7 +8,6 @@ import 'package:finance_tracker/screens/transfer_screen.dart';
 import 'package:finance_tracker/screens/analytics_screen.dart';
 import 'package:finance_tracker/screens/reminder_screen.dart';
 import 'package:finance_tracker/screens/add_transaction_screen.dart';
-import 'package:finance_tracker/screens/currency_converter_screen.dart';
 import 'package:finance_tracker/utils/colors.dart';
 import 'package:finance_tracker/utils/currency_manager.dart';
 
@@ -149,7 +148,7 @@ class _MainAppScreenState extends State<MainAppScreen> {
     return <Widget>[
       // Pass the callback to HomeScreen. HomeScreen's constructor needs to accept it.
       HomeScreen(onNavigateToTransferTab: () => onTabChange(1)), // Index 0
-      const CurrencyConverterScreen(),                           // Index 1 (Replaced Transfer)
+      const TransferScreen(),                                    // Index 1 (Transfer)
       const SizedBox.shrink(),                                   // Index 2 (FAB placeholder)
       const AnalyticsScreen(),                                   // Index 3
       const ReminderScreen(),                                    // Index 4
@@ -220,7 +219,7 @@ class _MainAppScreenState extends State<MainAppScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
               _buildNavItem(icon: Icons.home_rounded, label: 'Home', index: 0),
-              _buildNavItem(icon: Icons.currency_exchange_rounded, label: 'Currency', index: 1),
+              _buildNavItem(icon: Icons.swap_horiz_rounded, label: 'Transfer', index: 1),
               const SizedBox(width: 48),
               _buildNavItem(icon: Icons.bar_chart_rounded, label: 'Analytics', index: 3),
               _buildNavItem(icon: Icons.notifications_active_outlined, label: 'Reminder', index: 4),

@@ -432,24 +432,50 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildCurrentBalanceCard(ThemeData theme, NumberFormat currencyFormatter) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      elevation: 2,
+      elevation: 0,
       color: AppColors.accentGreen,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Current Balance',
-              style: theme.textTheme.titleMedium?.copyWith(color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              currencyFormatter.format(_overallBalance),
-              style: theme.textTheme.displaySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.accentGreen.withOpacity(0.25),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
             ),
           ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.account_balance_wallet_rounded, color: Colors.white.withOpacity(0.85), size: 24),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Current Balance',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: Colors.white.withOpacity(0.9),
+                      fontWeight: FontWeight.w500,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                currencyFormatter.format(_overallBalance),
+                style: theme.textTheme.displaySmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 40,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -493,45 +519,59 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildIncomeSpentSummaryCard(ThemeData theme, NumberFormat currencyFormatter) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 2,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildIncomeExpenseRow(
-                    icon: Icons.arrow_circle_up_rounded,
-                    iconColor: AppColors.incomeColor,
-                    label: 'Income',
-                    amount: currencyFormatter.format(_filteredIncome),
-                    amountColor: AppColors.incomeColor,
-                    theme: theme,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildIncomeExpenseRow(
-                    icon: Icons.arrow_circle_down_rounded,
-                    iconColor: AppColors.expenseColor,
-                    label: 'Spent',
-                    amount: currencyFormatter.format(_filteredExpense),
-                    amountColor: AppColors.expenseColor,
-                    theme: theme,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              flex: 3,
-              child: SizedBox(
-                height: 120,
-                child: _buildDonutChart(theme),
-              ),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      color: AppColors.cardBackground,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
             ),
           ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildIncomeExpenseRow(
+                      icon: Icons.arrow_circle_up_rounded,
+                      iconColor: AppColors.incomeColor,
+                      label: 'Income',
+                      amount: currencyFormatter.format(_filteredIncome),
+                      amountColor: AppColors.incomeColor,
+                      theme: theme,
+                    ),
+                    const SizedBox(height: 18),
+                    _buildIncomeExpenseRow(
+                      icon: Icons.arrow_circle_down_rounded,
+                      iconColor: AppColors.expenseColor,
+                      label: 'Spent',
+                      amount: currencyFormatter.format(_filteredExpense),
+                      amountColor: AppColors.expenseColor,
+                      theme: theme,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                flex: 3,
+                child: SizedBox(
+                  height: 140,
+                  child: _buildDonutChart(theme),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
